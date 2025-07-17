@@ -1,6 +1,4 @@
-
-import { prompt } from './utils.js';
-
+import { prompt } from './utils.js'; // Supondo que você tenha um utils.js para o prompt
 
 function renderizarSaida(texto) {
     console.log(texto);
@@ -15,69 +13,73 @@ function obterDadosLocalizacao(estadoJogo, dadosJogo) {
 }
 
 function gerirInteracaoDemonio(estadoJogo, dadosLocalizacao) {
-    const { demonio } = dadosLocalizacao;
+    const { demonio, item } = dadosLocalizacao;
 
-    if (!demonio) {
-        return;
+    if (item) {
+        // Se houver um item na sala, o jogador o obtém.
+        renderizarSaida(`\nVocê encontrou: ${item.nome}. ${item.descricao}`);
+        if (dadosLocalizacao === dadosJogo["SalaSecreta"]) {
+            estadoJogo.temChaveDaVerdade = true;
+        }
     }
+
+    if (!demonio) return;
 
     renderizarSaida(`\nVocê encontra ${demonio.nome}.`);
+    renderizarSaida(`\n${demonio.nome}: "${demonio.dialogo}"`);
 
-    if (!demonio.podeInteragir) {
-        renderizarSaida(`\n${demonio.nome}: "${demonio.dialogo}"`);
-        renderizarSaida(`(A voz de ${demonio.nome} ecoa em sua mente...)`);
-        return;
+    // ANOTAÇÃO: Lógica de interação especial baseada em 'tipoInteracao'
+    if (demonio.podeInteragir && demonio.tipoInteracao === 'escolhaChave') {
+        renderizarSaida(`${demonio.nome}: "${demonio.dialogoEscolha}"`);
+        const escolha = obterComandoJogador(`Aceitar o fragmento? (sim/nao) `);
+
+        if (escolha === "sim") {
+            renderizarSaida("\nVocê decide encarar a verdade, não importa o quão dolorosa seja.");
+            // O jogador será movido para a sala secreta no próximo passo
+        } else {
+            renderizarSaida("\nVocê recua, temendo o que pode descobrir. A ignorância é uma benção temporária.");
+            // Impede o jogador de ir para a SalaSecreta
+            dadosLocalizacao.rotas["N"] = "sala5"; // Altera a rota N para não levar a lugar nenhum efetivamente
+        }
     }
 
-    const escolha = obterComandoJogador(`Você deseja conversar com ${demonio.nome}? (sim/nao) `);
-
-    if (escolha === "sim") {
-        renderizarSaida(`\n${demonio.nome}: "${demonio.dialogo}"`);
-        renderizarSaida(`\n${demonio.nome}: "${demonio.dialogoAceite}"`);
-        if (estadoJogo.nomeCirculoAtual === "Luxúria") {
-            estadoJogo.aceitouAVerdade = true;
-            renderizarSaida("\nA partir de agora, as revelações dos demônios se tornam mais claras...");
-        }
-    } else {
-        renderizarSaida(`\nVocê ignora ${demonio.nome}.`);
-        renderizarSaida(`\n${demonio.nome}: "${demonio.dialogoRecuse}"`);
-        if (estadoJogo.nomeCirculoAtual === "Luxúria") {
-            renderizarSaida("\nVocê fechou seus ouvidos para as palavras do demônio...");
-        }
+    if (demonio.dialogo2) {
+        renderizarSaida(`${demonio.nome}: "${demonio.dialogo2}"`);
     }
 }
 
-function processarMovimentoJogador(comando, estadoJogo, dadosLocalizacao) {
+function processarMovimentoJogador(comando, estadoJogo, dadosLocalizacao, dadosJogo) {
     const direcao = comando.toUpperCase();
-    const rotasDisponiveis = dadosLocalizacao.rotas[direcao];
+    const proximoCirculoNome = dadosLocalizacao.rotas[direcao];
 
-    if (!rotasDisponiveis) {
+    if (!proximoCirculoNome) {
         renderizarSaida("\nEssa direção não parece existir neste lugar infernal. Tente outra direção.");
         return;
     }
 
-    const indiceAleatorio = Math.floor(Math.random() * rotasDisponiveis.length);
-    const proximoCirculoNome = rotasDisponiveis[indiceAleatorio];
-    
+    // ANOTAÇÃO: Condição para acessar o Final Lúcido
+    if (proximoCirculoNome === "FinalLucido" && !estadoJogo.temChaveDaVerdade) {
+        renderizarSaida("\nA porta à sua frente parece selada por uma força que você não compreende. Falta algo... uma verdade que você se recusa a ver.");
+        return; // Impede o movimento
+    }
+
     estadoJogo.nomeCirculoAtual = proximoCirculoNome;
-    renderizarSaida("\nVocê avançou para: ???. A escuridão te arrasta mais fundo.");
+    // Ocultar o nome do próximo círculo adiciona mistério
+    // renderizarSaida(`\nVocê avançou para: ${proximoCirculoNome}. A escuridão te arrasta mais fundo.`);
 }
 
-function verificarCondicaoFim(estadoJogo) {
-    if (estadoJogo.nomeCirculoAtual === "Traição") {
-        renderizarSaida("\nVocê chegou ao círculo mais profundo do Inferno. Não há mais para onde descer.");
+function verificarCondicaoFim(estadoJogo, dadosLocalizacao) {
+    // ANOTAÇÃO: A condição de fim agora é baseada em uma propriedade da sala.
+    if (dadosLocalizacao.ehFinal) {
         estadoJogo.jogoTerminou = true;
     }
 }
 
-function exibirMensagemFinal(estadoJogo, dadosJogo) {
+function exibirMensagemFinal(dadosLocalizacao) {
+    // ANOTAÇÃO: A mensagem final é simplesmente a descrição da sala final.
     renderizarSaida("\n--- O FIM INEVITÁVEL ---");
-    
-    const chaveFinal = estadoJogo.aceitouAVerdade ? "SOFRIMENTO_CONSCIENTE" : "SOFRIMENTO_ILUDIDO";
-    const dadosDoFinal = dadosJogo[chaveFinal];
-
-    renderizarSaida(dadosDoFinal.descricao);
-    renderizarSaida("\nFim da jornada do aventureiro. O Inferno reivindicou sua alma.");
+    renderizarSaida(dadosLocalizacao.descricao);
+    renderizarSaida("\nFim da jornada. O Inferno reivindicou sua alma.");
 }
 
 export {
