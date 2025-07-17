@@ -1,5 +1,6 @@
-// dadosJogo.js (Versão Final e Completa)
-
+// dadosJogo.js 
+// Utilizado IA para gerar os discursos e descrições dos círculos do inferno
+// Baseado na obra "A Divina Comédia" de Dante Alighieri, com adaptações para o jogo
 const dadosJogo = {
     "Limbo": {
         descricao: "Você está no Limbo, à beira de um abismo insondável. Almas sem nome vagam em uma névoa cinzenta e perpétua.",

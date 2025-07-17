@@ -1,4 +1,4 @@
-// logica.js (Versão Final e Corrigida)
+// logica.js 
 import { prompt } from './utils.js';
 
 // --- ARTE ASCII PARA O FINAL ---
@@ -200,13 +200,11 @@ async function processarComando(comando, estadoJogo, dadosLocalizacao, dadosJogo
                 exibirInventario(estadoJogo);
                 break;
             default:
-                // ANOTAÇÃO: A correção está aqui. Chamamos a função de ajuda.
                 exibirAjuda();
         }
     }
 }
 
-// Exporta as funções para serem usadas no main.js
 export {
     renderizarSaida, obterComandoJogador, obterDadosLocalizacao,
     processarComando, verificarCondicaoFim, exibirMensagemFinal, exibirStatus

@@ -1,4 +1,4 @@
-// main.js (Versão Final e Corrigida)
+// main.js 
 import dadosJogo from './dadosJogo.js';
 import {
     renderizarSaida, obterComandoJogador, obterDadosLocalizacao,
@@ -6,7 +6,6 @@ import {
     exibirStatus
 } from './logica.js';
 
-// ANOTAÇÃO 1: A função agora precisa ser 'async' para poder usar 'await' dentro dela.
 async function iniciarJogo() {
     const estadoJogo = {
         nomeCirculoAtual: "Limbo",
@@ -39,7 +38,6 @@ async function iniciarJogo() {
         
         const comando = obterComandoJogador("\nO que você faz? > ");
         
-        // ANOTAÇÃO 2: Adicionamos 'await' aqui. O loop vai pausar e esperar a conclusão do comando.
         await processarComando(comando, estadoJogo, dadosLocalizacaoAtual, dadosJogo);
     }
 }
